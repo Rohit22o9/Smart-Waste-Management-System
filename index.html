@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoNova - Smart Waste Management</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+    <!-- GSAP for Animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <!-- Leaflet Map CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- SplashScreen Intro -->
+    <div id="splash-screen">
+        <div class="splash-content">
+            <div class="splash-logo">
+                <i class="fa-solid fa-leaf grow-anim"></i>
+                <h1 class="fade-in-text">EcoNova</h1>
+            </div>
+            <div class="splash-loader">
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+                <p class="loading-text">Initializing Smart Waste System...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth/Role Selection View -->
+    <div id="auth-view" class="view-container active">
+        <div class="auth-card reveal-anim">
+            <img src="smart_eco_bin_clean.png" alt="Smart Waste 3D" class="hero-3d-image">
+            <div class="logo">
+                <i class="fa-solid fa-leaf"></i>
+                <h1>EcoNova</h1>
+            </div>
+
+            <div class="auth-tabs">
+                <button id="tab-login" class="auth-tab active" onclick="app.setAuthMode('login')">Login</button>
+                <button id="tab-signup" class="auth-tab" onclick="app.setAuthMode('signup')">Sign Up</button>
+            </div>
+
+            <form id="auth-form" class="auth-form" onsubmit="app.handleAuth(event)">
+                <div class="form-group">
+                    <label>Username / Email</label>
+                    <input type="text" id="auth-username" placeholder="Enter your username" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="auth-password" placeholder="••••••••" required>
+                </div>
+                <button type="submit" id="auth-submit-btn" class="btn primary-btn w-100">Login to Dashboard</button>
+            </form>
+
+            <p id="auth-switch-text" class="text-secondary mt-2" style="font-size: 0.85rem">
+                Access for Admin or Registered Users
+            </p>
+        </div>
+    </div>
+
+    <!-- Main Dashboard View -->
+    <div id="dashboard-view" class="view-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fa-solid fa-leaf"></i>
+                    <h2>EcoNova</h2>
+                </div>
+                <button class="close-sidebar" onclick="app.toggleSidebar()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <ul class="nav-links" id="nav-links">
+                <!-- Dynamic Nav Links based on role -->
+            </ul>
+
+            <div class="sidebar-footer">
+                <button onclick="app.logout()" class="logout-btn" data-i18n="logout"><i
+                        class="fa-solid fa-arrow-right-from-bracket"></i>
+                    Logout</button>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="top-header">
+                <button class="menu-toggle" onclick="app.toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+                <div class="header-title">
+                    <h2 id="page-title">Dashboard</h2>
+                </div>
+                <div class="header-actions">
+                    <div class="lang-selector">
+                        <select onchange="app.setLanguage(this.value)" id="lang-select">
+                            <option value="en">English</option>
+                            <option value="hi">हिंदी</option>
+                            <option value="mr">मराठी</option>
+                        </select>
+                    </div>
+                    <div class="notification-bell" onclick="app.toggleNotifications(); app.resetBadge();">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="badge" id="notification-badge" style="display: none;">0</span>
+                    </div>
+                    <div class="profile-pic">
+                        <i class="fa-solid fa-circle-user"></i>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Notifications Dropdown -->
+            <div class="notifications-dropdown" id="notifications-dropdown">
+                <h3>Notifications</h3>
+                <div class="notification-list" id="notification-list">
+                    <!-- Notifications will be injected here -->
+                </div>
+            </div>
+
+            <!-- Content Container -->
+            <div class="content-wrapper" id="content-wrapper">
+                <!-- Pages will be injected here dynamically -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Templates for Pages -->
+
+    <!-- USER: Home Screen -->
+    <template id="tpl-user-home">
+        <div class="dashboard-grid">
+            <div class="stats-card glass-morph reveal-anim delay-1" onmousemove="app.tiltCard(event, this)">
+                <div class="icon-box green"><i class="fa-solid fa-leaf"></i></div>
+                <div class="stat-info">
+                    <h3 data-i18n="points">Eco Points</h3>
+                    <p class="stat-value counter">350</p>
+                </div>
+            </div>
+            <div class="stats-card glass-morph reveal-anim delay-2" onmousemove="app.tiltCard(event, this)">
+                <div class="icon-box yellow"><i class="fa-regular fa-calendar-check"></i></div>
+                <div class="stat-info">
+                    <h3 data-i18n="pickup">Next Pickup</h3>
+                    <p class="stat-value" data-i18n="tomorrow" style="font-size: 1.2rem; line-height: 1.5;">Tomorrow</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="home-hero-section reveal-anim delay-3">
+            <div class="hero-3d-card glass-morph">
+                <div class="hero-content">
+                    <div class="hero-text">
+                        <h2 id="hero-title" data-i18n="my_bin_status">My Smart Bin Status</h2>
+                        <div id="user-bin-visual-meta">
+                            <!-- Live data injected here -->
+                        </div>
+                    </div>
+                    <div class="bin-3d-visualizer">
+                        <div class="liquid-container">
+                            <div class="liquid" id="visual-liquid"></div>
+                            <img src="assets/bin-3d.png" alt="3D Bin" class="bin-frame">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hero-footer-stats" id="hero-sensor-readouts">
+                    <!-- Sensor data here -->
+                </div>
+            </div>
+        </div>
+
+        <div class="quick-actions-bar reveal-anim delay-4">
+            <button class="action-btn primary"><i class="fa-solid fa-truck-fast"></i> <span
+                    data-i18n="request_pickup">Request Pickup</span></button>
+            <button class="action-btn secondary"><i class="fa-solid fa-receipt"></i> <span
+                    data-i18n="history">History</span></button>
+        </div>
+
+        <div class="card mt-2 reveal-anim delay-3">
+            <h3 data-i18n="quick_actions">Quick Actions</h3>
+            <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                <button class="btn primary-btn" onclick="alert('Pickup Requested!')"><i
+                        class="fa-solid fa-truck-pickup"></i> Request Early Pickup</button>
+                <button class="btn secondary-btn"><i class="fa-solid fa-clock-rotate-left"></i> View Bill &
+                    History</button>
+            </div>
+        </div>
+    </template>
+
+    <!-- USER: Map View -->
+    <template id="tpl-user-map">
+        <div class="map-container">
+            <div id="user-map" class="map-view"></div>
+        </div>
+    </template>
+
+    <!-- USER: Smart Segregation Helper -->
+    <template id="tpl-user-segregation">
+        <div class="segregation-container">
+            <div class="ai-search-box reveal-anim">
+                <h2 data-i18n="sorting"><i class="fa-solid fa-robot"></i> AI Waste Classifier</h2>
+                <p data-i18n="sorting_tip">Not sure where to throw it? Ask the AI!</p>
+                <div class="search-input-wrapper">
+                    <input type="text" id="waste-search" placeholder="e.g., Pizza Box, Milk Bottle, Apple..."
+                        onkeyup="app.searchWaste(this.value)">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </div>
+            </div>
+
+            <div id="segregation-result" class="segregation-result reveal-anim delay-1" style="display: none;">
+                <!-- Result will be injected here -->
+            </div>
+
+            <div class="bin-reference-grid reveal-anim delay-2">
+                <div class="bin-ref organic">
+                    <img src="https://cdn-icons-png.flaticon.com/512/3247/3247321.png" alt="Organic">
+                    <h4>Organic</h4>
+                    <span>Green Bin</span>
+                </div>
+                <div class="bin-ref recyclable">
+                    <img src="https://cdn-icons-png.flaticon.com/512/3244/3244015.png" alt="Recyclable">
+                    <h4>Recyclable</h4>
+                    <span>Blue Bin</span>
+                </div>
+                <div class="bin-ref plastic">
+                    <img src="https://cdn-icons-png.flaticon.com/512/3244/3244026.png" alt="Plastic">
+                    <h4>Hazardous</h4>
+                    <span>Red Bin</span>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- ADMIN: Overview Panel -->
+    <template id="tpl-admin-overview">
+        <div class="dashboard-grid admin-stats">
+            <div class="stats-card reveal-anim delay-1">
+                <div class="icon-box green"><i class="fa-solid fa-dumpster"></i></div>
+                <div class="stat-info">
+                    <h3>Total Bins</h3>
+                    <p class="stat-value">24</p>
+                </div>
+            </div>
+            <div class="stats-card reveal-anim delay-2">
+                <div class="icon-box red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <div class="stat-info">
+                    <h3>Full Bins</h3>
+                    <p class="stat-value">4</p>
+                </div>
+            </div>
+            <div class="stats-card reveal-anim delay-3">
+                <div class="icon-box yellow"><i class="fa-solid fa-truck"></i></div>
+                <div class="stat-info">
+                    <h3>Active Routes</h3>
+                    <p class="stat-value">2</p>
+                </div>
+            </div>
+            <div class="stats-card reveal-anim delay-3">
+                <div class="icon-box green"><i class="fa-solid fa-wifi"></i></div>
+                <div class="stat-info">
+                    <h3>System Health</h3>
+                    <p class="stat-value">98%</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card reveal-anim delay-2">
+                <h3>Live Fill Levels</h3>
+                <div style="position: relative; height: 300px; width: 100%;">
+                    <canvas id="fill-level-chart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card reveal-anim delay-2">
+                <h3>Sector Distribution</h3>
+                <div style="position: relative; height: 300px; width: 100%;">
+                    <canvas id="sector-chart"></canvas>
+                </div>
+            </div>
+
+            <div class="card reveal-anim delay-3">
+                <h3>System Alerts</h3>
+                <div class="alert-list" id="admin-alerts">
+                    <!-- Alerts injected via JS -->
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- ADMIN: AI Route Optimization -->
+    <template id="tpl-admin-routes">
+        <div class="route-optimization-view">
+            <div class="route-details">
+                <div class="card">
+                    <h3>AI Optimized Route (Zone A)</h3>
+                    <p class="text-muted">Calculated based on fill levels and traffic patterns.</p>
+
+                    <div class="route-stats">
+                        <div class="r-stat">
+                            <span>Est. Time</span>
+                            <strong>45 mins</strong>
+                        </div>
+                        <div class="r-stat">
+                            <span>Distance</span>
+                            <strong>12 km</strong>
+                        </div>
+                        <div class="r-stat">
+                            <span>Urgent Bins</span>
+                            <strong>4</strong>
+                        </div>
+                    </div>
+
+                    <div class="quantum-toggle-container mt-2"
+                        style="background: var(--primary-ultra-light); border: 2px dashed var(--primary-light); padding: 15px; border-radius: var(--border-radius); transition: all 0.3s ease;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h4
+                                    style="color: var(--primary-dark); display: flex; align-items: center; gap: 8px; margin: 0;">
+                                    <i class="fa-solid fa-atom"></i> Quantum AI Mode
+                                </h4>
+                                <p style="font-size: 0.75rem; color: var(--text-muted); margin: 4px 0 0 0;">Uses QAOA &
+                                    QUBO formulation</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="quantum-switch"
+                                    onchange="app.toggleQuantumMode(this.checked)">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div id="quantum-stats"
+                            style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.1);">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.8rem;">
+                                <span>Optimization Gain:</span>
+                                <strong style="color: var(--primary-dark);" id="q-gain">+18%</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <ul class="route-stops" id="route-stops">
+                        <!-- Stops injected via JS -->
+                    </ul>
+
+                    <button class="btn primary-btn w-100 mt-2" id="dispatch-btn" onclick="app.dispatchTruck()"><i
+                            class="fa-solid fa-truck-fast"></i> Dispatch Truck</button>
+                </div>
+            </div>
+            <div class="route-map-container card">
+                <div id="route-loading" class="calculating-overlay">
+                    <i class="fa-solid fa-brain"
+                        style="font-size: 3rem; color: var(--primary); animation: float 3s infinite;"></i>
+                    <h3 style="color: var(--primary-dark)">AI Calculating Optimal Route...</h3>
+                    <p class="text-muted">Analyzing fill levels & traffic patterns</p>
+                </div>
+                <div id="admin-route-map" class="map-view"></div>
+            </div>
+        </div>
+    </template>
+
+    <!-- ADMIN: Bin Management -->
+    <template id="tpl-admin-bins">
+        <div class="card manage-bins-card">
+            <div class="card-header-flex">
+                <h3>Manage Bins</h3>
+                <button class="btn primary-btn" onclick="app.addBinModal()"><i class="fa-solid fa-plus"></i> Add
+                    Bin</button>
+            </div>
+            <div class="table-responsive mt-2">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Bin ID</th>
+                            <th>Location</th>
+                            <th>Status</th>
+                            <th>Last Updated</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bins-table-body">
+                        <!-- Table rows injected by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </template>
+
+    <!-- ADMIN: AI Predictions -->
+    <template id="tpl-admin-predictions">
+        <div class="dashboard-grid">
+            <div class="stats-card">
+                <div class="icon-box green"><i class="fa-solid fa-brain"></i></div>
+                <div class="stat-info">
+                    <h3>Prediction Accuracy</h3>
+                    <p class="stat-value">92%</p>
+                </div>
+            </div>
+            <div class="stats-card">
+                <div class="icon-box red"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                <div class="stat-info">
+                    <h3>Max Overflow Risk</h3>
+                    <p class="stat-value" id="pred-risk-bin">BIN-004</p>
+                </div>
+            </div>
+            <div class="stats-card">
+                <div class="icon-box yellow"><i class="fa-solid fa-stopwatch"></i></div>
+                <div class="stat-info">
+                    <h3>Avg Fill Time</h3>
+                    <p class="stat-value">4.5 Hrs</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-grid" style="margin-bottom: 20px;">
+            <div class="chart-card">
+                <h3>Trend Analysis: Past vs Predicted (Next 5 Hrs)</h3>
+                <div style="position: relative; height: 300px; width: 100%;">
+                    <canvas id="prediction-line-chart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Smart Insights</h3>
+                <ul class="route-stops mt-2" id="smart-insights-list">
+                    <!-- Insights injected via JS -->
+                </ul>
+            </div>
+        </div>
+
+        <h3 class="section-title">Proactive Bin Predictions</h3>
+        <div class="bins-container" id="prediction-cards-container">
+            <!-- Prediction Cards Injected by JS -->
+        </div>
+    </template>
+
+    <!-- Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Chatbot UI -->
+    <div id="chatbot-wrapper">
+        <div id="chatbot-window" class="chatbot-window">
+            <div class="chatbot-header">
+                <div class="flex items-center gap-2">
+                    <div class="chatbot-status-dot"></div>
+                    <span class="font-bold">NovaBot Assistant</span>
+                </div>
+                <button onclick="app.toggleChat()" class="chatbot-close-btn">&times;</button>
+            </div>
+            <div id="chatbot-messages" class="chatbot-messages">
+                <div class="message bot-message">Hello! I'm NovaBot. How can I help you with your smart waste system
+                    today?</div>
+            </div>
+            <div class="chatbot-input-area">
+                <input type="file" id="chatbot-camera-input" accept="image/*" capture="environment"
+                    style="display: none;" onchange="app.handleChatImage(this)">
+                <input type="file" id="chatbot-gallery-input" accept="image/*" style="display: none;"
+                    onchange="app.handleChatImage(this)">
+
+                <div style="display: flex; gap: 8px;">
+                    <button onclick="document.getElementById('chatbot-camera-input').click()" class="chat-tool-btn"
+                        title="Capture Image">
+                        <i class="fa-solid fa-camera"></i>
+                    </button>
+                    <button onclick="document.getElementById('chatbot-gallery-input').click()" class="chat-tool-btn"
+                        title="Upload Photo">
+                        <i class="fa-solid fa-image"></i>
+                    </button>
+                </div>
+
+                <input type="text" id="chatbot-input" placeholder="Ask about bins..."
+                    onkeypress="if(event.key === 'Enter') app.sendChatMessage()">
+                <button onclick="app.sendChatMessage()" class="chatbot-send-btn"><i
+                        class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </div>
+        <button id="chatbot-fab" class="chatbot-fab" onclick="app.toggleChat()">
+            <i class="fa-solid fa-comment-dots"></i>
+        </button>
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Modal: Add Bin -->
+    <div id="common-modal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="modal-title">Add New Smart Bin</h3>
+                <button onclick="app.closeModal()" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Form injected here -->
+            </div>
+            <div class="modal-footer">
+                <button onclick="app.closeModal()" class="btn secondary-btn">Cancel</button>
+                <button onclick="app.submitModal()" class="btn primary-btn">Save Bin</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Logic -->
+    <script src="js/translations.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/quantum-solver.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>
