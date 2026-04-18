@@ -1137,19 +1137,19 @@ class DashboardApp {
             {
                 bin: 'organic',
                 icon: 'fa-apple-whole',
-                keywords: ['pizza', 'apple', 'banana', 'peel', 'food', 'bread', 'veggie', 'meat', 'eggshell', 'leftover', 'leaf', 'grass', 'compost', 'tea', 'coffee', 'fruit'],
+                keywords: ['pizza', 'apple', 'banana', 'peel', 'food', 'bread', 'veggie', 'meat', 'eggshell', 'leftover', 'leaf', 'grass', 'compost', 'tea', 'coffee', 'fruit', 'rice', 'pasta', 'bones', 'flowers', 'twigs', 'nuts', 'seeds', 'cereal', 'cake', 'scraps', 'corn', 'potato', 'onion', 'garlic', 'dairy', 'cheese', 'wood'],
                 tip: "Organic waste is converted into high-quality compost for city gardens!"
             },
             {
                 bin: 'recyclable',
                 icon: 'fa-recycle',
-                keywords: ['milk', 'bottle', 'plastic', 'glass', 'paper', 'cardboard', 'can', 'tin', 'aluminum', 'newspaper', 'magazine', 'carton', 'box', 'metal', 'jar', 'envelope'],
+                keywords: ['milk', 'bottle', 'plastic', 'glass', 'paper', 'cardboard', 'can', 'tin', 'aluminum', 'newspaper', 'magazine', 'carton', 'box', 'metal', 'jar', 'envelope', 'wine', 'beer', 'soda', 'shampoo', 'detergent', 'textile', 'cloth', 'fabric', 'denim', 'shirt', 'pants', 'towel', 'cotton', 'wool', 'linen', 'iron', 'steel', 'copper', 'book', 'notebook', 'brochure', 'flyer', 'post', 'card'],
                 tip: "Make sure to rinse containers and flatten cardboard boxes to save space."
             },
             {
                 bin: 'hazardous',
                 icon: 'fa-skull-crossbones',
-                keywords: ['battery', 'medicine', 'paint', 'oil', 'chemical', 'toxic', 'bulb', 'electronics', 'phone', 'charger', 'syringe', 'acid', 'mercury', 'wire', 'e-waste'],
+                keywords: ['battery', 'medicine', 'paint', 'oil', 'chemical', 'toxic', 'bulb', 'electronics', 'phone', 'charger', 'syringe', 'acid', 'mercury', 'wire', 'e-waste', 'mask', 'glove', 'sanitary', 'diaper', 'aerosol', 'spray', 'lighter', 'match', 'pesticide', 'bleach', 'cleaner', 'solvent', 'ink', 'toner', 'cartridge', 'thermometer', 'glue', 'adhesive'],
                 tip: "Hazardous waste requires special processing. Do not mix with regular garbage!"
             }
         ];
