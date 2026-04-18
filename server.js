@@ -4,11 +4,13 @@ const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
+const path = require('path');
 app.use(express.json());
 app.use(cors());
+app.use(express.static(__dirname));
 
 // MongoDB Connection
-const MONGO_URI = "mongodb+srv://rohitdb:Rohit2209@cluster0.l4v0ldu.mongodb.net/econova?retryWrites=true&w=majority&appName=Cluster0";
+const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://rohitdb:Rohit2209@cluster0.l4v0ldu.mongodb.net/econova?retryWrites=true&w=majority&appName=Cluster0";
 
 mongoose.connect(MONGO_URI)
     .then(() => console.log("✅ Connected to MongoDB Atlas"))
@@ -30,14 +32,14 @@ const User = mongoose.model('User', userSchema);
 app.post('/api/signup', async (req, res) => {
     try {
         const { username, password } = req.body;
-        
+
         // Check if user exists
         const existing = await User.findOne({ username });
         if (existing) return res.status(400).json({ error: "Username already exists" });
 
         const newUser = new User({ username, password });
         await newUser.save();
-        
+
         res.status(201).json({ message: "User created successfully" });
     } catch (err) {
         res.status(500).json({ error: "Server error during signup" });
@@ -63,7 +65,12 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-const PORT = 5000;
+// Root Route to serve frontend
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`🚀 Server running on port ${PORT}`);
 });
