@@ -99,7 +99,7 @@ class DashboardApp {
 
         try {
             if (this.authMode === 'signup') {
-                const res = await fetch('http://localhost:5000/api/signup', {
+                const res = await fetch('/.netlify/functions/signup', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username: user, password: pass })
@@ -113,7 +113,7 @@ class DashboardApp {
                     alert(data.error || "Signup failed");
                 }
             } else {
-                const res = await fetch('http://localhost:5000/api/login', {
+                const res = await fetch('/.netlify/functions/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username: user, password: pass })
